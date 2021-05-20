@@ -1,2 +1,3 @@
 # sqlalchemy-challenge
-Project using SQLAlchemy 
+
+Project using Python and SQLAlchemy to find data
