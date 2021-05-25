@@ -1,11 +1,10 @@
 import numpy as np
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 
-from flask import Flask, jsonify
+from flask import Flask, request, render_template,flash, jsonify
 
 #################################################
 # Database Setup#################################################
@@ -49,7 +48,7 @@ def precipitation():
     filter(Measurement.date > '2016-08-22', Measurement.prcp).\
     order_by(Measurement.date.desc()).all()
     dtp
-
+   
     session.close()
     # Create a dictionary from the row data and append to a list of precipitation
     all_prcp = []
@@ -86,12 +85,34 @@ def tobs():
     tr = session.query(Measurement.date,Measurement.tobs).\
     filter(Measurement.date > '2016-08-22').filter(Measurement.station == 'USC00519281').all()
     tr
-
+    
     session.close()
      # Convert list of tuples into normal list
     all_tr = list(np.ravel(tr))
 
     return jsonify(all_tr)
 
+@app.route("/api/v1.0/<start>", methods =["GET", "POST"])
+def start_date (start):
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    s= session.query(func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+    filter(Measurement.date ==start).all()
+    session.close()
+    # Convert list of tuples into normal list
+    sd = list(np.ravel(s))
+    return jsonify(sd)
+
+@app.route("/api/v1.0/<start>/<end>", methods =["GET", "POST"])
+def start_end_date (start_end):
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+    se= session.query(func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+    filter(Measurement.date ==start_end).all()
+    session.close()
+    # Convert list of tuples into normal list
+    sed = list(np.ravel(se))
+    return jsonify(sed)
+    
 if __name__ == '__main__':
     app.run()
